@@ -179,20 +179,24 @@ class ToolCallFactory(BaseGraphNodeFactory):
             if not tool_calls:
                 return {}
 
-            tool_messages = []
-            for tool_call in tool_calls:
+            semaphore = asyncio.Semaphore(5)
+
+            async def tool_calling(tool_call: ToolCall):
                 tool, tool_args, tool_id = ToolCallFactory.get_tool(graph_state, tool_call)
                 if not tool:
-                    continue
+                    return None
+                async with semaphore:
+                    try:
+                        resp = tool.invoke(tool_args)
+                    except Exception as e:
+                        resp = f'捕获到异常{e}'
+                    return ToolMessage(content=resp, tool_call_id=tool_id)
 
-                resp = await tool.ainvoke(tool_args)
-                tool_messages.append(
-                    ToolMessage(
-                        content=resp,
-                        tool_call_id=tool_id,
-                    )
-                )
+            result = await asyncio.gather(
+                *(tool_calling(tool) for tool in tool_calls),
+            )
 
+            tool_messages = [tool_message for tool_message in result if tool_message]
             return ToolCallFactory.return_dict(tool_messages)
 
         return tool_calling
