@@ -181,7 +181,7 @@ class ToolCallFactory(BaseGraphNodeFactory):
 
             semaphore = asyncio.Semaphore(5)
 
-            async def tool_calling(tool_call: ToolCall):
+            async def build_tool_calling(tool_call: ToolCall):
                 tool, tool_args, tool_id = ToolCallFactory.get_tool(graph_state, tool_call)
                 if not tool:
                     return None
@@ -193,7 +193,7 @@ class ToolCallFactory(BaseGraphNodeFactory):
                     return ToolMessage(content=resp, tool_call_id=tool_id)
 
             result = await asyncio.gather(
-                *(tool_calling(tool) for tool in tool_calls),
+                *(build_tool_calling(tool) for tool in tool_calls),
             )
 
             tool_messages = [tool_message for tool_message in result if tool_message]
