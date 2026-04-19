@@ -30,7 +30,11 @@ def chat_with_tool_route(state: GraphState) -> Literal['tool_call', 'add_query',
     return 'add_query'
 
 
-def build_graph(add_query, chat_with_tool, tool_calling):
+def build_graph(
+        add_query = AddQueryFactory.sync_func(),
+        chat_with_tool = ChatWithModelFactory.sync_func(),
+        tool_calling = ToolCallFactory.sync_func()
+):
     graph_builder = StateGraph(GraphState)
 
     graph_builder.add_node('add_query', add_query)
