@@ -187,7 +187,7 @@ class ToolCallFactory(BaseGraphNodeFactory):
                     return None
                 async with semaphore:
                     try:
-                        resp = tool.invoke(tool_args)
+                        resp = await tool.ainvoke(tool_args)
                     except Exception as e:
                         resp = f'捕获到异常{e}'
                     return ToolMessage(content=resp, tool_call_id=tool_id)
